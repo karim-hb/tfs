@@ -1,24 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import CssBaseline from "@mui/material/CssBaseline";
+import { useSelector } from "react-redux";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import Login from "./pages/login";
 
 function App() {
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+  console.log(userInfo, "userInfouserInfo");
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <BrowserRouter>
+        {!userInfo ? (
+          <>
+            <Routes>
+              <Route element={<Login />} path="/" />
+              <Route element={<Login />} path="/register" />
+            </Routes>
+          </>
+        ) : (
+          <>
+            <Routes> </Routes>
+          </>
+        )}
+      </BrowserRouter>
+      <CssBaseline />
+      <ToastContainer
+        position="top-right"
+        hideProgressBar={false}
+        closeOnClick={true}
+        rtl={true}
+        pauseOnFocusLoss={true}
+        draggable={true}
+        pauseOnHover={true}
+      />
+    </>
   );
 }
 
