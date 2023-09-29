@@ -2,12 +2,13 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { useSelector } from "react-redux";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Login from "./pages/login";
+import FrogetPassword from "./pages/auth/forgetPassWord";
+import Login from "./pages/auth/login";
+import Register from "./pages/auth/register";
 
 function App() {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
-  console.log(userInfo, "userInfouserInfo");
   return (
     <>
       <BrowserRouter>
@@ -15,7 +16,8 @@ function App() {
           <>
             <Routes>
               <Route element={<Login />} path="/" />
-              <Route element={<Login />} path="/register" />
+              <Route element={<Register />} path="/register" />
+              <Route element={<FrogetPassword />} path="/ForgotPassword" />
             </Routes>
           </>
         ) : (

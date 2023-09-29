@@ -1,37 +1,72 @@
+import CachedIcon from "@mui/icons-material/Cached";
+import CardMembershipIcon from "@mui/icons-material/CardMembership";
+import InputIcon from "@mui/icons-material/Input";
+import LaptopIcon from "@mui/icons-material/Laptop";
+import SecurityIcon from "@mui/icons-material/Security";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Box,
   Button,
   CircularProgress,
   Paper,
+  Skeleton,
   TextField,
   Typography,
 } from "@mui/material";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import IconButton from "@mui/material/IconButton";
 import FormControl from "@mui/material/FormControl";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import InputLabel from "@mui/material/InputLabel";
+import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import CachedIcon from "@mui/icons-material/Cached";
-import CardMembershipIcon from "@mui/icons-material/CardMembership";
-import SecurityIcon from "@mui/icons-material/Security";
-import InputIcon from "@mui/icons-material/Input";
-import LaptopIcon from "@mui/icons-material/Laptop";
-import React, { useState } from "react";
+import InputLabel from "@mui/material/InputLabel";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { API } from "../../../scripts/api";
+import axiosInstance from "../../../scripts/axiosInspector";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [data, setData] = useState({});
+  const [captcha, setCaptch] = useState({});
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const [loading, setLoading] = useState(false);
+  const [reRender, setRerender] = useState(1);
+  const [err,setErr] = useState("")
+  useEffect(() => {
+    axiosInstance.get(API.auth.captch).then((res) => {
+      setCaptch(res.data.data?.chCaptchaBase64);
+      setData({
+        ...data,
+        chEncryptedCaptchaKey: res.data.data?.chEncryptedCaptchaKey,
+      });
+    });
+  }, [reRender]);
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
+    axiosInstance
+      .post(API.auth.login, {
+        ...data,
+      })
+      .then((res) => {
+        if (res?.data?.data?.btIsValid) {
+        
+          toast.success(res?.data?.message);
+        
+        } else {
+          setErr(res?.data?.message)
+          toast.error(res?.data?.message);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        toast.error("خطایی رخ داده است مجدد تلاش کنید");
+        setLoading(false);
+      });
   };
   return (
     <>
@@ -94,9 +129,9 @@ function Login() {
               variant="outlined"
               fullWidth
               type="text"
-              value={data?.name}
-              onChange={(e) => setData({ ...data, name: e.target.value })}
-              name="user_name"
+              value={data?.chUserName}
+              onChange={(e) => setData({ ...data, chUserName: e.target.value })}
+              name="chUserName"
             />
             <FormControl fullWidth variant="outlined">
               <InputLabel htmlFor="outlined-adornment-password">
@@ -104,9 +139,11 @@ function Login() {
               </InputLabel>
               <OutlinedInput
                 id="outlined-adornment-password"
-                value={data?.password}
-                onChange={(e) => setData({ ...data, password: e.target.value })}
-                name="password"
+                value={data?.chPassword}
+                onChange={(e) =>
+                  setData({ ...data, chPassword: e.target.value })
+                }
+                name="chPassword"
                 type={showPassword ? "text" : "password"}
                 endAdornment={
                   <InputAdornment position="right">
@@ -132,9 +169,11 @@ function Login() {
               label="تصویر امنیتی"
               variant="outlined"
               fullWidth
-              value={data?.captcha}
-              onChange={(e) => setData({ ...data, captcha: e.target.value })}
-              name="captcha"
+              value={data?.chCaptchaKey}
+              onChange={(e) =>
+                setData({ ...data, chCaptchaKey: e.target.value })
+              }
+              name="chCaptchaKey"
             />
             <Box
               sx={{
@@ -145,11 +184,17 @@ function Login() {
                 width: "100%",
               }}
             >
-              <img
-                src="/assets/images/login/login_code.png"
-                alt=""
-                className="w-full"
-              />{" "}
+              {captcha ? (
+                <img src={captcha} alt="" className="w-full" />
+              ) : (
+                <Skeleton
+                  variant="rounded"
+                  width={200}
+                  height={53}
+                  animation="wave"
+                />
+              )}
+
               <IconButton
                 sx={{
                   display: "flex",
@@ -158,6 +203,7 @@ function Login() {
                   padding: "15px 20px",
                   cursor: "pointer",
                 }}
+                onClick={() => setRerender((r) => r + 1)}
               >
                 <CachedIcon sx={{ color: "#03a9f4" }} />
               </IconButton>
@@ -170,27 +216,33 @@ function Login() {
                 justifyContent: "space-between",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  cursor: "pointer",
-                  ":hover": {
-                    background: "#2196f31c",
-                  },
-                  alignItems: "center",
-                  color: "#2196f3",
-                  gap: "2px",
-                }}
-              >
-                {" "}
-                <SecurityIcon
-                  sx={{ padding: "3px !important", fontSize: { md: "1.2rem" } }}
-                />
-                <Typography sx={{ fontSize: { md: "0.8rem" } }}>
+              <Link to="/ForgotPassword">
+                <Box
+                  sx={{
+                    display: "flex",
+                    cursor: "pointer",
+                    ":hover": {
+                      background: "#2196f31c",
+                    },
+                    alignItems: "center",
+                    color: "#2196f3",
+                    gap: "2px",
+                  }}
+                >
                   {" "}
-                  ارسال/فراموشی رمز عبور{" "}
-                </Typography>
-              </Box>
+                  <SecurityIcon
+                    sx={{
+                      padding: "3px !important",
+                      fontSize: { md: "1.2rem" },
+                    }}
+                  />
+                  <Typography sx={{ fontSize: { md: "0.8rem" } }}>
+                    {" "}
+                    ارسال/فراموشی رمز عبور{" "}
+                  </Typography>
+                </Box>
+              </Link>
+
               <Link to="/register">
                 <Box
                   sx={{
@@ -218,6 +270,7 @@ function Login() {
               </Link>
             </Box>
             <Box sx={{ px: "15px", my: "3.25px", width: "100%" }}>
+             
               <Button
                 variant="contained"
                 sx={{
@@ -227,7 +280,12 @@ function Login() {
                   background: "#2196f3",
                 }}
                 type="submit"
-                disabled={!data?.name || !data?.password || loading}
+                disabled={
+                  !data?.chUserName ||
+                  !data?.chPassword ||
+                  loading ||
+                  !data?.chCaptchaKey
+                }
               >
                 {loading ? (
                   <>
@@ -242,22 +300,23 @@ function Login() {
                   </>
                 )}
               </Button>
+              {err && <div className="text-red-400 mt-2">{err}</div>}
             </Box>
             {/*  <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                px: "15px",
-                my: "3.25px",
-                width: "100%",
-              }}
-            >
-              <Typography sx={{ fontSize: "11px", px: "7px" }}>
-                Remember
-              </Typography>
-              <input type="checkbox" name="" id="" className="chekbox" />
-            </Box> */}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  px: "15px",
+                  my: "3.25px",
+                  width: "100%",
+                }}
+              >
+                <Typography sx={{ fontSize: "11px", px: "7px" }}>
+                  Remember
+                </Typography>
+                <input type="checkbox" name="" id="" className="chekbox" />
+              </Box> */}
           </Box>
           {/* liste sefid */}
           <Box
